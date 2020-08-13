@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/robotlab/catkin_ws/src/franka_app/build/devel/setup.sh

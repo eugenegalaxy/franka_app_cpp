@@ -17,6 +17,10 @@ find_package( Franka REQUIRED )
 link_directories(${Franka_LIBRARY_DIRS})
 add_definitions(${Franka_DEFINITIONS})
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+find_package(Eigen REQUIRED )
+
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -123,6 +127,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   ${Franka_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -141,6 +146,8 @@ include_directories(
 add_executable(franka_test src/franka_test.cpp)
 target_link_libraries(franka_test ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 
+add_executable(franka_test_impedance src/impedance_control_example.cpp)
+target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${Eigen_LIBRARIES})
 
 
 ## Rename C++ executable without prefix

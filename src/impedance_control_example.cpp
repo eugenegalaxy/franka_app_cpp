@@ -22,7 +22,17 @@
 #include <franka/robot_state.h>
 
 
-void setDefaultBehavior	(	franka::Robot & 	robot	);
+#define ROBOT_IP_STR "172.16.0.2"
+
+void setDefaultBehavior(franka::Robot& robot) {
+  robot.setCollisionBehavior(
+      {{20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0}}, {{20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0}},
+      {{10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0}}, {{10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0}},
+      {{20.0, 20.0, 20.0, 20.0, 20.0, 20.0}}, {{20.0, 20.0, 20.0, 20.0, 20.0, 20.0}},
+      {{10.0, 10.0, 10.0, 10.0, 10.0, 10.0}}, {{10.0, 10.0, 10.0, 10.0, 10.0, 10.0}});
+  robot.setJointImpedance({{3000, 3000, 3000, 2500, 2500, 2000, 2000}});
+  robot.setCartesianImpedance({{3000, 3000, 3000, 300, 300, 300}});
+}
 
 int main(int argc, char** argv) {
   // Check whether the required arguments were passed

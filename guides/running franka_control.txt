@@ -1,0 +1,3 @@
+Run this to turn on franka arm/gripper controller node server to use with actions:
+
+roslaunch franka_control franka_control.launch load_gripper:=true robot_ip:=172.16.0.2

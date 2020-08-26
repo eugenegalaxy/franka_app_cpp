@@ -1,8 +1,24 @@
+/*
+This is an example library for Franka robot/gripper control in C++
+
+How to use:
+1. Uncomment the section you want to test (TODO: functions)
+2. catkin_make franka_app
+2. rosrun franka_app_cpp fr_grip_homing_action.py
+
+This script was created by Jevgenijs Galaktionovs, AAU employee.
+Email: jgalak16@student.aau.dk (or) accidentalyo@gmail.com
+GitHub repo: https://github.com/eugenegalaxy/franka_app_cpp
+
+Date: 26.08.2020
+*/
+
+
+#include <iostream>
+
 #include <franka/robot.h>
 #include <franka/gripper.h>
 #include <franka/exception.h>
-
-#include <iostream>
 
 
 #define ROBOT_IP_STR "172.16.0.2"

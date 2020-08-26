@@ -1,10 +1,18 @@
 
-//// EUGENE NOTE: Just copy pasted this code from examples, haven't used it yet.
-//// This code is not made executable in CMake.txt!
+/* 
+Hand guide the robot and see it bouncing back to its initial position.
+This is a demo showing how impedance controller works in Franka Robot.
 
+How to run it: rosrun franka_app_cpp franka_test_impedance <robot_ip>
+Example: rosrun franka_app_cpp franka_test_impedance 172.16.0.2
 
-// Copyright (c) 2017 Franka Emika GmbH
-// Use of this source code is governed by the Apache-2.0 license, see LICENSE
+Note 1: Just copy pasted this code from examples.
+Note 2: Robot must be in BLUE light mode (Automatic).
+
+Copyright (c) 2017 Franka Emika GmbH
+Use of this source code is governed by the Apache-2.0 license, see LICENSE
+*/
+
 #include <array>
 #include <cmath>
 #include <functional>
@@ -20,7 +28,6 @@
 #include <franka/duration.h>
 #include <franka/robot.h>
 #include <franka/robot_state.h>
-
 
 #define ROBOT_IP_STR "172.16.0.2"
 

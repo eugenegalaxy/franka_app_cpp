@@ -148,10 +148,6 @@ target_link_libraries(franka_test ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 add_executable(franka_test_impedance src/impedance_control_example.cpp)
 target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${Eigen_LIBRARIES})
 
-add_executable(franka_action_client src/franka_action_client.cpp)
-target_link_libraries(franka_action_client ${catkin_LIBRARIES} ${Franka_LIBRARIES})
-#add_dependencies(franka_action_client beginner_tutorials_gencpp)
-
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

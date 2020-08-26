@@ -1,0 +1,27 @@
+Not for myself to remember where I stopped
+
+1. roscore
+
+2. rosrun franka_app_cpp position_pub
+This file will read robot state [x,y,z,rx,ry,rz] and publish it on a topic /franka_current_position
+
+3. franka_control_ros.py is a class that contains some functionality of publishing to robot (move)
+
+4. rosrun franka_app_cpp franka_position_pub.cpp
+
+This will create 3 subscribers - franka_move_to, franka_gripper_grasp, franka_gripper_move
+These 3 subscribers communicate with franka.control_ros.py (from step 3)
+
+5. rosrun franka_app_cpp franka_mover.py 
+Place your example code here that will use franka_control_ros.py class with some functions
+
+
+
+To do list:
+
+1. Fix robot's mechanical problem (manually release brakes?)
+2. Test your above described sequence. Can you move the robot? FINALLY?
+3. If yes, start packing all functionality into something single:
+    3.1 Like a roslaunch file that has server in it
+4. How to send move to commands while using path-planning or controllers?
+5. Do documentation for other people

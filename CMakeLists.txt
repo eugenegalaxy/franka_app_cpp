@@ -17,6 +17,8 @@ find_package( Franka REQUIRED )
 link_directories(${Franka_LIBRARY_DIRS})
 add_definitions(${Franka_DEFINITIONS})
 
+find_package(OpenCV REQUIRED)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Eigen REQUIRED )
 
@@ -147,6 +149,13 @@ target_link_libraries(franka_test ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 
 add_executable(franka_test_impedance src/impedance_control_example.cpp)
 target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${Eigen_LIBRARIES})
+
+add_executable(controller_sub src/franka_controller_sub.cpp)
+target_link_libraries(controller_sub ${catkin_LIBRARIES} ${Franka_LIBRARIES})
+
+add_executable(position_pub src/franka_position_pub.cpp)
+target_link_libraries(position_pub ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${OpenCV_LIBS})
+
 
 
 ## Rename C++ executable without prefix

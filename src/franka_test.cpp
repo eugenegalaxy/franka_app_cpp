@@ -54,32 +54,32 @@ try{
 
     std::array<double, 16> initial_pose;
 
-    robot.control( [&initial_pose, &time](const franka::RobotState& robot_state,
-        franka::Duration time_step) -> franka::CartesianPose{
+    // robot.control( [&initial_pose, &time](const franka::RobotState& robot_state,
+    //     franka::Duration time_step) -> franka::CartesianPose{
 
-        time += time_step.toSec();
+    //     time += time_step.toSec();
 
-        if (time == 0.0) {
-            initial_pose = robot_state.O_T_EE_c;
-        }
-
-
-        constexpr double kRadius = 0.3;
-        double angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * time));
-        double delta_x = kRadius * std::sin(angle);
-        double delta_z = kRadius * (std::cos(angle) - 1);
-        std::array<double, 16> new_pose = initial_pose;
-        new_pose[12] += delta_x;
-        std::cout << new_pose[12] << std::endl;
-        new_pose[14] += delta_z;
+    //     if (time == 0.0) {
+    //         initial_pose = robot_state.O_T_EE_c;
+    //     }
 
 
-        if(time >= 10){
-            std::cout << std::endl << "Finished motion, shutting down example" << std::endl;
-        return franka::MotionFinished(new_pose);
-        }
-        return new_pose;
-    });
+    //     constexpr double kRadius = 0.3;
+    //     double angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * time));
+    //     double delta_x = kRadius * std::sin(angle);
+    //     double delta_z = kRadius * (std::cos(angle) - 1);
+    //     std::array<double, 16> new_pose = initial_pose;
+    //     new_pose[12] += delta_x;
+    //     std::cout << new_pose[12] << std::endl;
+    //     new_pose[14] += delta_z;
+
+
+    //     if(time >= 10){
+    //         std::cout << std::endl << "Finished motion, shutting down example" << std::endl;
+    //     return franka::MotionFinished(new_pose);
+    //     }
+    //     return new_pose;
+    // });
     
     ////========================================================
     //// Poorly working Joint Position example
@@ -130,13 +130,13 @@ try{
     ////========================================================
     // // This loop will continuously read the robot state.
     // // Code snippet from "echo_robot_state" example
-    // size_t count = 0;
-    // robot.read([&count](const franka::RobotState& robot_state) {
-    // // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
-    // // but should not be done in a control loop.
-    // std::cout << robot_state << std::endl;
-    // return count++ < 100;
-    // });
+    size_t count = 0;
+    robot.read([&count](const franka::RobotState& robot_state) {
+    // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
+    // but should not be done in a control loop.
+    std::cout << robot_state << std::endl;
+    return count++ < 100;
+    });
     ////========================================================
 
 

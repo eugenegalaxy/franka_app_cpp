@@ -11,18 +11,28 @@ def example_position():
     """
     arm = FrankaRos(debug=True)
     while True:
-        try:
-            data = arm.get_position()
-            print("End effector position:")
-            print("X: ", data[0])
-            print("Y: ", data[1])
-            print("Z: ", data[2])
-            time.sleep(0.4)
+        data = arm.get_position()
+        print("End effector position:")
+        print("X: ", data[0])
+        print("Y: ", data[1])
+        print("Z: ", data[2])
+        time.sleep(0.4)
+
+
+def example_move_relative(dx, dy, dz, speed):
+    arm = FrankaRos(debug=True)
+    arm.move_relative(dx, dy, dz, speed)
+
+
+def move_gripper(width, speed):
+    arm = FrankaRos(debug=True)
+    arm.move_gripper(width, speed)
 
 
 if __name__ == '__main__':
     try:
         # example_position()
-        
+        # move_gripper(0.05, 0.1)
+        example_move_relative(0.05, 0, 0, 0.1)
     except KeyboardInterrupt:
         print("\nExiting...")

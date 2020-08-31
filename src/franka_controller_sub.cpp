@@ -22,10 +22,15 @@ Petar Kormushev
 
 #include <thread>
 
+#include <opencv2/opencv.hpp>
+
 using namespace std; 
 
+#define ROBOT_IP_STR "172.27.23.65"
 
 // declaration of global variables
+std_msgs::Float64MultiArray PoseMsg;
+
 double target_x = std::numeric_limits<double>::quiet_NaN(); 
 double target_y = std::numeric_limits<double>::quiet_NaN(); 
 double target_z = std::numeric_limits<double>::quiet_NaN(); 
@@ -127,28 +132,69 @@ void moveCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
   // cout << "moved " << moved << endl;
 }
 
+// Converts a given Rotation Matrix to Euler angles
+cv::Mat rot2euler(const cv::Mat & rotationMatrix)
+{
+  cv::Mat euler(3,1,CV_64F);
 
-// subscriber for absolute coordinates and speed
+  double m00 = rotationMatrix.at<double>(0,0);
+  double m02 = rotationMatrix.at<double>(0,2);
+  double m10 = rotationMatrix.at<double>(1,0);
+  double m11 = rotationMatrix.at<double>(1,1);
+  double m12 = rotationMatrix.at<double>(1,2);
+  double m20 = rotationMatrix.at<double>(2,0);
+  double m22 = rotationMatrix.at<double>(2,2);
+
+  double x, y, z;
+
+  // Assuming the angles are in radians.
+  if (m10 > 0.998) { // singularity at north pole
+    x = 0;
+    y = CV_PI/2;
+    z = atan2(m02,m22);
+  }
+  else if (m10 < -0.998) { // singularity at south pole
+    x = 0;
+    y = -CV_PI/2;
+    z = atan2(m02,m22);
+  }
+  else
+  {
+    x = atan2(-m12,m11);
+    y = asin(m10);
+    z = atan2(-m20,m00);
+  }
+
+  euler.at<double>(0) = x;
+  euler.at<double>(1) = y;
+  euler.at<double>(2) = z;
+
+  return euler;
+}
+
+
 void subscribe_target_motion() {
-  // subscription stuff
   ros::NodeHandle node_handle;
   ros::Subscriber sub_motion = node_handle.subscribe("franka_move_to", 1, motionCallback);  // 1: buffer size of message queue
   ros::Subscriber sub_grasp = node_handle.subscribe("franka_gripper_grasp", 1, graspCallback);
   ros::Subscriber sub_move = node_handle.subscribe("franka_gripper_move", 1, moveCallback);
 
-  // ros::Publisher pub_positions = node_handle.advertise<std_msgs::Float64MultiArray>("franka_current_position", 1);
+  ros::Rate loop_rate(1000);  // 1 kHz
+  while (ros::ok()){
+    ros::spinOnce();
+    loop_rate.sleep(); 
+  }
+}
+
+void publisher_franka_pose(){
+  ros::NodeHandle node_handle;
+  ros::Publisher pub_positions = node_handle.advertise<std_msgs::Float64MultiArray>("franka_current_position", 1);
   
-  ros::Rate loop_rate(1000);  // 2 kHz
+  ros::Rate loop_rate(100);  // 1 kHz
 
   while (ros::ok()) {
 
-    // std_msgs::Float64MultiArray msg;
-    // msg.data.clear();
-    // msg.data[0] = 0.02;
-    // msg.data[1] = 1;
-    // msg.data[2] = 0.033;
-
-    // pub_positions.publish(msg);
+    pub_positions.publish(PoseMsg);
 
     ros::spinOnce();
     loop_rate.sleep(); 
@@ -156,18 +202,19 @@ void subscribe_target_motion() {
 }
 
 
+
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "listener");
+  ros::init(argc, argv, "franka_pub_and_sub");
 
   if (argc != 2) {
-    std::cerr << "Usage: ./franka_gripper_control <robot-hostname>" << std::endl;
+    std::cerr << "Usage: rosrun franka_app_cpp controller_sub <robot-hostname>" << std::endl;
     return -1;
   }
   try {
 
     franka::Robot robot(argv[1]);
     gripper = new franka::Gripper(argv[1]); 
-
+    robot.automaticErrorRecovery();
     cout << "gripper created" << endl; 
 
     // Set additional parameters always before the control loop, NEVER in the control loop!
@@ -201,13 +248,35 @@ int main(int argc, char** argv) {
     // call the subscription thread
     
     std::thread t1(subscribe_target_motion);
+    std::thread t2(publisher_franka_pose);
+    
 
-    cout << "before control loop" << endl; 
+    std::array<double, 16> pose;
+    cv::Mat eulers(3, 1, CV_64F);
+    size_t count = 0;
 
+    robot.read([&count, &pose, &eulers](const franka::RobotState& robot_state) {
+      auto state_pose = robot_state.O_T_EE_d;
+      pose = state_pose;
+
+      std::array<double, 9> rotation_vector;
+      rotation_vector = {pose[0],pose[1], pose[2],
+                          pose[4],pose[5], pose[6],
+                          pose[8],pose[9], pose[10]};
+
+      cv::Mat rotationMatrix(3, 3, CV_64FC1);
+      for(int i = 0; i < 3; i++) 
+          for(int j = 0; j < 3; j++) 
+              rotationMatrix.at<double>(i,j)= rotation_vector[i+j];
+      eulers = rot2euler(rotationMatrix);
+
+      PoseMsg.data = {pose[12],pose[13],pose[14], eulers.at<double>(0), eulers.at<double>(1), eulers.at<double>(2)}; // EE_xyz in meters
+          return 0; 
+    });
+
+  
     robot.control([=, &time](const franka::RobotState& robot_state,
                              franka::Duration time_step) -> franka::CartesianVelocities {
-
-      // cout << "within control loop" << endl; 
 
       double vel_x = 0.0; 
       double vel_y = 0.0; 
@@ -222,12 +291,9 @@ int main(int argc, char** argv) {
       auto state_pose = robot_state.O_T_EE_d;
       std::array<double, 16> current_pose = state_pose;
 
-
       double cur_x = current_pose[12]; 
       double cur_y = current_pose[13];
       double cur_z = current_pose[14]; 
-
-      // cout << cur_x << " " << cur_y << " " << cur << endl; 
 
       // initially, the robot moves to its current position (-> no motion)
       if (isnan(target_x)) {
@@ -236,15 +302,7 @@ int main(int argc, char** argv) {
         target_z = cur_z; 
       }
 
-      // target coordinates
-
-      // subscriber in separate thread
-      
-      // cout << target_x; 
-      
-
       // computing the motion
-
       double vec_x = target_x - cur_x;
       double vec_y = target_y - cur_y;
       double vec_z = target_z - cur_z; 
@@ -269,24 +327,17 @@ int main(int argc, char** argv) {
       old_vel_x = vel_x;
       old_vel_y = vel_y;
       old_vel_z = vel_z;
-
       franka::CartesianVelocities output = {{vel_x, vel_y, vel_z, 0.0, 0.0, 0.0}};
 
-      double vel_norm = sqrt(vel_x*vel_x + vel_y*vel_y + vel_z*vel_z); 
 
-
-
-
-      // stopping the motino properly
+      // stopping the motion properly (doesnt work?)
+      // double vel_norm = sqrt(vel_x*vel_x + vel_y*vel_y + vel_z*vel_z); 
       // if (vel_norm < 0.001) {
       //   // stop program when target reached
       //   std::cout << std::endl << "Finished motion, shutting down..." << std::endl << std::flush;
       //   franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
       //   return franka::MotionFinished(output);
       // }
-
-
-
 
       // franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
 /*      if (time >= 2 * time_max) {

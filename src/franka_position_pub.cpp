@@ -10,7 +10,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#define ROBOT_IP_STR "172.16.0.2"
+#define ROBOT_IP_STR "172.27.23.65"
 
 // Converts a given Rotation Matrix to Euler angles
 cv::Mat rot2euler(const cv::Mat & rotationMatrix)

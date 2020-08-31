@@ -15,7 +15,7 @@ from std_msgs.msg import MultiArrayDimension
 
 
 class FrankaRos:
-    def __init__(self, log=False, ip='192.168.0.88', debug=False):
+    def __init__(self, log=False, debug=False):
         """Initialisation of the FrankaRos class.
 
         Sets boolean flags such as logging and print statements for debugging. Sets the IP
@@ -28,7 +28,6 @@ class FrankaRos:
         * moving the grippers to a certain width with a speed
         """
         self.log = log
-        self.ip_address = ip
         self.debug = debug
         self.path = os.path.dirname(os.path.realpath(__file__))  # gets working dir of this file
 

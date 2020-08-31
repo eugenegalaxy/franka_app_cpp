@@ -29,7 +29,7 @@ Use of this source code is governed by the Apache-2.0 license, see LICENSE
 #include <franka/robot.h>
 #include <franka/robot_state.h>
 
-#define ROBOT_IP_STR "172.16.0.2"
+#define ROBOT_IP_STR "172.27.23.65"
 
 void setDefaultBehavior(franka::Robot& robot) {
   robot.setCollisionBehavior(

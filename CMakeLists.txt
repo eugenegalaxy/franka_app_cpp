@@ -151,7 +151,7 @@ add_executable(franka_test_impedance src/impedance_control_example.cpp)
 target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${Eigen_LIBRARIES})
 
 add_executable(controller_sub src/franka_controller_sub.cpp)
-target_link_libraries(controller_sub ${catkin_LIBRARIES} ${Franka_LIBRARIES})
+target_link_libraries(controller_sub ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable(position_pub src/franka_position_pub.cpp)
 target_link_libraries(position_pub ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${OpenCV_LIBS})

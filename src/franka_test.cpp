@@ -4,7 +4,7 @@ This is an example library for Franka robot/gripper control in C++
 How to use:
 1. Uncomment the section you want to test (TODO: functions)
 2. catkin_make franka_app
-2. rosrun franka_app_cpp fr_grip_homing_action.py
+2. rosrun franka_app_cpp franka_test
 
 This script was created by Jevgenijs Galaktionovs, AAU employee.
 Email: jgalak16@student.aau.dk (or) accidentalyo@gmail.com
@@ -21,7 +21,7 @@ Date: 26.08.2020
 #include <franka/exception.h>
 
 
-#define ROBOT_IP_STR "172.16.0.2"
+#define ROBOT_IP_STR "172.27.23.65"
 
 franka::Torques
 zero_torque_callback( const franka::RobotState&, franka::Duration)
@@ -135,7 +135,7 @@ try{
     // Printing to std::cout adds a delay. This is acceptable for a read loop such as this,
     // but should not be done in a control loop.
     std::cout << robot_state << std::endl;
-    return count++ < 100;
+    return count++ < 1;
     });
     ////========================================================
 

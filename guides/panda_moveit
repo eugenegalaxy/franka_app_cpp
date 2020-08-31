@@ -1,0 +1,33 @@
+1. sudo apt install ros-melodic-moveit
+
+2. cd ~/catkin_workspace/src
+ 
+3. git clone -b melodic-devel https://github.com/ros-planning/moveit_tutorials.git
+
+4. git clone -b melodic-devel https://github.com/ros-planning/panda_moveit_config.git
+
+5. cd ..
+6. catkin_make
+
+catkin_make will most likely fail because of missed package. So install it next:
+
+7. sudo apt-get install ros-melodic-pcl-ros
+
+Now:
+
+8. catkin_make
+
+==========================================================
+
+Run demo:
+
+1. roslaunch panda_moveit_config demo.launch
+
+(Other terminal)
+
+2. rosrun moveit_tutorials move_group_python_interface_tutorial.py
+
+Read and press 'Enter' to see robot moving in your RViZ window.
+
+===========================================================
+

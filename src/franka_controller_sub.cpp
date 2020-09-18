@@ -39,6 +39,9 @@ double target_gripper_width = 1.0;
 double target_gripper_speed = 0.1; 
 double target_gripper_force = 60; 
 
+double timer;
+
+
 franka::Gripper* gripper = nullptr;  // just for the sake of creating a global object, will be changed later 
 
 /**
@@ -63,9 +66,85 @@ bool speed_below_limit(double target_speed) {
 }
 
 
+franka::CartesianVelocities my_cartesian_callback(const franka::RobotState& robot_state,
+                                                  franka::Duration time_step)
+{
+    double vel_x = 0.0; 
+    double vel_y = 0.0; 
+    double vel_z = 0.0; 
+
+    static double old_vel_x = 0.0; 
+    static double old_vel_y = 0.0; 
+    static double old_vel_z = 0.0; 
+
+    timer += time_step.toSec(); 
+
+    auto state_pose = robot_state.O_T_EE_d;
+    std::array<double, 16> current_pose = state_pose;
+
+    double cur_x = current_pose[12]; 
+    double cur_y = current_pose[13];
+    double cur_z = current_pose[14]; 
+
+    // initially, the robot moves to its current position (-> no motion)
+    if (isnan(target_x)) {
+      target_x = cur_x; 
+      target_y = cur_y; 
+      target_z = cur_z; 
+    }
+
+    // computing the motion
+    double vec_x = target_x - cur_x;
+    double vec_y = target_y - cur_y;
+    double vec_z = target_z - cur_z; 
+
+    double l2_norm = sqrt(vec_x*vec_x + vec_y*vec_y + vec_z*vec_z); 
+
+    if (l2_norm < 0.02) {
+        vel_x = 0.9*old_vel_x;
+        vel_y = 0.9*old_vel_y; 
+        vel_z = 0.9*old_vel_z; 
+    }
+    else {
+      vel_x = speed*(vec_x / l2_norm);
+      vel_y = speed*(vec_y / l2_norm);
+      vel_z = speed*(vec_z / l2_norm); 
+    }
+
+    vel_x = 0.99*old_vel_x + 0.01*vel_x;
+    vel_y = 0.99*old_vel_y + 0.01*vel_y;
+    vel_z = 0.99*old_vel_z + 0.01*vel_z;
+    
+    old_vel_x = vel_x;
+    old_vel_y = vel_y;
+    old_vel_z = vel_z;
+    franka::CartesianVelocities output = {{vel_x, vel_y, vel_z, 0.0, 0.0, 0.0}};
+
+    // franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+    // if (time >= 2 * time_max) {
+    //   std::cout << std::endl << "Finished motion, shutting down example" << std::endl;
+    //   return franka::MotionFinished(output);
+    // }
+
+
+    // stopping the motion properly (doesnt work?)
+    double vel_norm = sqrt(vel_x*vel_x + vel_y*vel_y + vel_z*vel_z);
+    //std::cout << vel_norm << std::endl;
+    if (vel_norm < 0.001) {
+      // stop program when target reached
+      // std::cout << std::endl << "Finished motion, shutting down..." << std::endl << std::flush;
+      franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+      // return franka::MotionFinished(output);
+      return output;
+      }
+
+    return output;
+  }
+
+
 void motionCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
-  ROS_INFO("Motion callback received: [%lf, %lf, %lf, %lf]", msg->data[0], msg->data[1], msg->data[2], msg->data[3]);  // 
+  //ROS_INFO("Motion callback received: [%lf, %lf, %lf, %lf]", msg->data[0], msg->data[1], msg->data[2], msg->data[3]);  // 
 
 
   target_x = msg->data[0]; 
@@ -240,7 +319,7 @@ int main(int argc, char** argv) {
         lower_force_thresholds_acceleration, upper_force_thresholds_acceleration,
         lower_force_thresholds_nominal, upper_force_thresholds_nominal);
 
-    double time = 0.0;
+    robot.setCartesianImpedance({{2000, 2000, 2000, 100, 100, 100}});
 
     auto initial_pose = robot.readOnce().O_T_EE_d;
     std::array<double, 16> current_pose = initial_pose;
@@ -274,84 +353,13 @@ int main(int argc, char** argv) {
           return 0; 
     });
 
-  
-    robot.control([=, &time](const franka::RobotState& robot_state,
-                             franka::Duration time_step) -> franka::CartesianVelocities {
-
-      double vel_x = 0.0; 
-      double vel_y = 0.0; 
-      double vel_z = 0.0; 
-
-      static double old_vel_x = 0.0; 
-      static double old_vel_y = 0.0; 
-      static double old_vel_z = 0.0; 
-
-      time += time_step.toSec(); 
-
-      auto state_pose = robot_state.O_T_EE_d;
-      std::array<double, 16> current_pose = state_pose;
-
-      double cur_x = current_pose[12]; 
-      double cur_y = current_pose[13];
-      double cur_z = current_pose[14]; 
-
-      // initially, the robot moves to its current position (-> no motion)
-      if (isnan(target_x)) {
-        target_x = cur_x; 
-        target_y = cur_y; 
-        target_z = cur_z; 
-      }
-
-      // computing the motion
-      double vec_x = target_x - cur_x;
-      double vec_y = target_y - cur_y;
-      double vec_z = target_z - cur_z; 
-
-      double l2_norm = sqrt(vec_x*vec_x + vec_y*vec_y + vec_z*vec_z); 
-
-      if (l2_norm < 0.02) {
-          vel_x = 0.9*old_vel_x;
-          vel_y = 0.9*old_vel_y; 
-          vel_z = 0.9*old_vel_z; 
-      }
-      else {
-        vel_x = speed*(vec_x / l2_norm);
-        vel_y = speed*(vec_y / l2_norm);
-        vel_z = speed*(vec_z / l2_norm); 
-      }
-
-      vel_x = 0.99*old_vel_x + 0.01*vel_x;
-      vel_y = 0.99*old_vel_y + 0.01*vel_y;
-      vel_z = 0.99*old_vel_z + 0.01*vel_z;
-      
-      old_vel_x = vel_x;
-      old_vel_y = vel_y;
-      old_vel_z = vel_z;
-      franka::CartesianVelocities output = {{vel_x, vel_y, vel_z, 0.0, 0.0, 0.0}};
-
-
-      // stopping the motion properly (doesnt work?)
-      // double vel_norm = sqrt(vel_x*vel_x + vel_y*vel_y + vel_z*vel_z); 
-      // if (vel_norm < 0.001) {
-      //   // stop program when target reached
-      //   std::cout << std::endl << "Finished motion, shutting down..." << std::endl << std::flush;
-      //   franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-      //   return franka::MotionFinished(output);
-      // }
-
-      // franka::CartesianVelocities output = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
-/*      if (time >= 2 * time_max) {
-        std::cout << std::endl << "Finished motion, shutting down example" << std::endl;
-        return franka::MotionFinished(output);
-      }*/
-      return output;
-    });
+    timer = 0.0;
+    robot.control(my_cartesian_callback, franka::ControllerMode::kCartesianImpedance);
   
   } catch (const franka::Exception& e) {
     std::cout << e.what() << std::endl;
     return -1;
   }
-
   return 0;
 }
 

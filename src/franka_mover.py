@@ -29,10 +29,20 @@ def move_gripper(width, speed):
     arm.move_gripper(width, speed)
 
 
+def example_move_to(x, y, z, vel):
+    arm = FrankaRos(debug=True)
+    arm.move_to(x, y, z, vel)
+
+
 if __name__ == '__main__':
     try:
         # example_position()
-        # move_gripper(0.05, 0.1)
-        example_move_relative(0.05, 0, 0, 0.1)
+        # move_gripper(0.2, 0.1)
+        for x in range(1):
+
+            example_move_relative(0.1, 0, 0, 0.1)
+            time.sleep(0.001)
+        # example_move_to(0.4, 0.1, 0.2, 0.1)
+
     except KeyboardInterrupt:
         print("\nExiting...")

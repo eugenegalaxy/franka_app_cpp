@@ -13,7 +13,6 @@ Petar Kormushev
 #include <franka/robot.h>
 #include <franka/gripper.h>
 
-#include <cmath>  // for isnan()
 #include <limits> // for quiet_NaN
 
 // for subscribers

@@ -18,31 +18,13 @@ link_directories(${Franka_LIBRARY_DIRS})
 add_definitions(${Franka_DEFINITIONS})
 
 find_package(OpenCV REQUIRED)
+link_directories(${OpenCV_LIBRARY_DIRS})
+add_definitions(${OpenCV_DEFINITIONS})
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Eigen REQUIRED )
-
-
-
-################################################
-## Declare ROS dynamic reconfigure parameters ##
-################################################
-
-## To declare and build dynamic reconfigure parameters within this
-## package, follow these steps:
-## * In the file package.xml:
-##   * add a build_depend and a exec_depend tag for "dynamic_reconfigure"
-## * In this file (CMakeLists.txt):
-##   * add "dynamic_reconfigure" to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * uncomment the "generate_dynamic_reconfigure_options" section below
-##     and list every .cfg file to be processed
-
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+link_directories(${Eigen_LIBRARY_DIRS})
+add_definitions(${Eigen_DEFINITIONS})
 
 ###################################
 ## catkin specific configuration ##
@@ -83,7 +65,6 @@ target_link_libraries(examples_common ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${
 add_dependencies(examples_common ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${Franka_EXPORTED_TARGETS} ${Eigen_EXPORTED_TARGETS})
 # ${${PROJECT_NAME}_EXPORTED_TARGETS}
 
-
 add_executable(franka_test src/franka_test.cpp)
 target_link_libraries(franka_test ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 
@@ -95,6 +76,8 @@ target_link_libraries(controller_sub ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${O
 
 add_executable(generate_cart_pose_motion src/generate_cartesian_motion/generate_cartesian_pose_motion.cpp)
 target_link_libraries(generate_cart_pose_motion examples_common ${catkin_LIBRARIES} ${Franka_LIBRARIES})
+
+
 
 
 ## Mark cpp header files for installation

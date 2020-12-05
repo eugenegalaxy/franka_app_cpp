@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 find_package( Franka REQUIRED )
@@ -25,6 +26,16 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Eigen REQUIRED )
 link_directories(${Eigen_LIBRARY_DIRS})
 add_definitions(${Eigen_DEFINITIONS})
+
+add_service_files(
+  FILES
+  bool_key.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -65,8 +76,6 @@ target_link_libraries(examples_common ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${
 add_dependencies(examples_common ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${Franka_EXPORTED_TARGETS} ${Eigen_EXPORTED_TARGETS})
 # ${${PROJECT_NAME}_EXPORTED_TARGETS}
 
-add_executable(franka_test src/franka_test.cpp)
-target_link_libraries(franka_test ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 
 add_executable(franka_test_impedance src/impedance_control_example.cpp)
 target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${Eigen_LIBRARIES})
@@ -74,10 +83,8 @@ target_link_libraries(franka_test_impedance ${catkin_LIBRARIES} ${Franka_LIBRARI
 add_executable(controller_sub src/franka_controller_sub.cpp)
 target_link_libraries(controller_sub ${catkin_LIBRARIES} ${Franka_LIBRARIES} ${OpenCV_LIBS})
 
-add_executable(generate_cart_pose_motion src/generate_cartesian_motion/generate_cartesian_pose_motion.cpp)
-target_link_libraries(generate_cart_pose_motion examples_common ${catkin_LIBRARIES} ${Franka_LIBRARIES})
-
-
+add_executable(franka_node src/little_helper_demo/franka_node.cpp)
+target_link_libraries(franka_node ${catkin_LIBRARIES} ${Franka_LIBRARIES})
 
 
 ## Mark cpp header files for installation
